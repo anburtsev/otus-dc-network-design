@@ -1,5 +1,5 @@
 # Lesson 3
-Домашняя работа по уроку № 3
+Домашняя работа по уроку № 3 "Основы проектирования сети"
 
 ## Цели
 * Собрать схему CLOS;
@@ -30,10 +30,10 @@
 Для DC1 - POD1 будет использоваться битовая маска: 01001000.00000000, что соответсвует сети: 10.72.0.0/21
 Для линка между коммутатором spine 1 и leaf 2 в DC 1, POD 1 будет использоваться битовое значение (вторые 16 бит): 01 001 001.000010 00 что соответсвует подсети: 10.0.73.8/30. У интерфейс на spine коммутаторе будет IP адрес: 10.0.73.10/30, У интерфейс на leaf коммутаторе будет IP адрес: 10.0.73.9/30. IP адрес Loopback интерфейса на коммутаторе spine1 будет: 10.0.73.0/32, а у коммутатора leaf2 - будет: 10.0.72.8/32
 
-# Схема соединений коммутаторов
+## Схема соединений коммутаторов
 ![DC Network Scheme](img/DC-Network.png)
 
-# Конфигурация коммутаторов
+## Конфигурация коммутаторов
 На коммутаторах выполнена следующая конфигурация:
 * spine1:
 ```
@@ -41,7 +41,6 @@ hostname spine1
 
 feature lldp
 
-username admin password 0 admin role network-admin
 no ip domain-lookup
 
 interface Ethernet1/1
@@ -74,8 +73,6 @@ hostname spine2
 
 feature lldp
 
-no password strength-check
-username admin password 0 admin role network-admin
 no ip domain-lookup
 
 interface Ethernet1/1
@@ -108,8 +105,6 @@ hostname leaf1
 
 feature lldp
 
-no password strength-check
-username admin password 0 admin role network-admin
 no ip domain-lookup
 
 interface Ethernet1/1
@@ -136,8 +131,6 @@ hostname leaf2
 
 feature lldp
 
-no password strength-check
-username admin password 0 admin role network-admin
 no ip domain-lookup
 
 interface Ethernet1/1
@@ -164,8 +157,6 @@ hostname leaf3
 
 feature lldp
 
-no password strength-check
-username admin password 0 admin role network-admin
 no ip domain-lookup
 
 interface Ethernet1/1
@@ -186,7 +177,7 @@ interface loopback0
 end
 ```
 
-# Проверка результатов настройки
+## Проверка результатов настройки
 
 ![Вывод с коммутатора spine1](img/spine1.png)
 
