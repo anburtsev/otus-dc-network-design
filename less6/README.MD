@@ -9,16 +9,16 @@
 1. Разработать схему областей ISIS и выбрать типы маршрутизаторов, используемых в нашем датацентре
 2. Выполнить настройку протокола ISIS на коммутаторах
    * Настроить протокол ISIS глобально на коммутаоре
-   * Настроить протокол ISISна интерфесах, соединяющих коммутаторы друг с другом, включив аутентификацию
+   * Настроить протокол ISIS на интерфесах, соединяющих коммутаторы друг с другом, включив аутентификацию
    * Настроить протокол ISIS на Loopback интерфейсах 
 3. Проверить установление соседства между коммутаторами и наличие маршрутов до префиксов loopback интерфейсов всех коммутаторов
 
 ## Реализация
 ### Схема использование областей протокола ISIS и типы маршрутизаторов в underlay сети датацентра
 
-Для простоты конфигурации, и так как в нашем Датацентре не предполагается большого числа коммутаторов, планируется включить все коммутаторы в одну Area 1 протокола ISIS. Spine коммутаторы будут выполнять роль L2 only маршрутизаторов, leaf коммутаторы - L1/L2 маршрутизаторов. 
+Для простоты конфигурации, и так как в нашем Датацентре не предполагается большого числа коммутаторов, планируется включить все коммутаторы в одну Area 1 протокола ISIS. Spine коммутаторы будут выполнять роль L2/L1 маршрутизаторов, leaf коммутаторы - L1 only маршрутизаторов. Для соединения PODов, super spine коммутаоры будут выполнять роль L2 only маршрутизаторов и находится в отдельной Aria. Данная схема позволит уменьшить базу LSDB на leaf коммутаторах.  
 
-## Схема OSPF
+## Схема IS-IS
 ![DC Network Scheme](img/DC-Network-ISIS.png)
 
 ## Конфигурация коммутаторов
@@ -33,9 +33,9 @@ key chain isis-key
 
 router isis underlay
   net 49.0001.0100.0007.3000.00
-  is-type level-2
-  authentication-type md5 level-2
-  authentication key-chain isis-key level-2
+  is-type level-1-2
+  authentication-type md5 level-1
+  authentication key-chain isis-key level-1
 
 interface loopback0
   ip router isis underlay
@@ -64,9 +64,9 @@ key chain isis-key
 
 router isis underlay
   net 49.0001.0100.0007.4000.00
-  is-type level-2
-  authentication-type md5 level-2
-  authentication key-chain isis-key level-2
+  is-type level-1-2
+  authentication-type md5 level-1
+  authentication key-chain isis-key level-1
 
 interface loopback0
   ip router isis underlay
@@ -95,9 +95,9 @@ key chain isis-key
 
 router isis underlay
   net 49.0001.0100.0007.2004.00
-  is-type level-1-2
-  authentication-type md5 level-2
-  authentication key-chain isis-key level-2
+  is-type level-1
+  authentication-type md5 level-1
+  authentication key-chain isis-key level-1
 
 interface loopback0
   ip router isis underlay
@@ -122,9 +122,9 @@ key chain isis-key
 
 router isis underlay
   net 49.0001.0100.0007.2008.00
-  is-type level-1-2
-  authentication-type md5 level-2
-  authentication key-chain isis-key level-2
+  is-type level-1
+  authentication-type md5 level-1
+  authentication key-chain isis-key level-1
 
 interface loopback0
   ip router isis underlay
@@ -149,9 +149,9 @@ key chain isis-key
 
 router isis underlay
   net 49.0001.0100.0007.2012.00
-  is-type level-1-2
-  authentication-type md5 level-2
-  authentication key-chain isis-key level-2
+  is-type level-1
+  authentication-type md5 level-1
+  authentication key-chain isis-key level-1
 
 interface loopback0
   ip router isis underlay
@@ -169,11 +169,16 @@ end
 ## Проверка результатов настройки
 Коммутатор spine1:
 ![Вывод с коммутатора spine1](img/spine1-isis.png)
+![Вывод с коммутатора spine1](img/spine1-isis2.png)
 Коммутатор spine2
 ![Вывод с коммутатора spine2](img/spine2-isis.png)
+![Вывод с коммутатора spine2](img/spine2-isis2.png)
 Коммутатор leaf1
 ![Вывод с коммутатора leaf1](img/leaf1-isis.png)
+![Вывод с коммутатора leaf1](img/leaf1-isis2.png)
 Коммутатор leaf2
 ![Вывод с коммутатора leaf2](img/leaf2-isis.png)
+![Вывод с коммутатора leaf2](img/leaf2-isis2.png)
 Коммутатор leaf3
 ![Вывод с коммутатора leaf3](img/leaf3-isis.png)
+![Вывод с коммутатора leaf3](img/leaf3-isis2.png)
