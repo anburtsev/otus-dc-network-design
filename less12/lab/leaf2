@@ -70,19 +70,19 @@ interface Management1
 !
 interface Vlan101
    vrf PROD
-   ip address 10.0.101.1/24
+   ip address virtual 10.0.101.1/24
 !
 interface Vlan102
    vrf PROD
-   ip address 10.0.102.1/24
+   ip address virtual 10.0.102.1/24
 !
 interface Vlan201
    vrf DEV
-   ip address 10.0.201.1/24
+   ip address virtual 10.0.201.1/24
 !
 interface Vlan202
    vrf DEV
-   ip address 10.0.202.1/24
+   ip address virtual 10.0.202.1/24
 !
 interface Vxlan1
    vxlan source-interface Loopback0

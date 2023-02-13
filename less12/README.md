@@ -77,9 +77,9 @@ prod1-pc> ping 10.0.102.10
 84 bytes from 10.0.102.10 icmp_seq=4 ttl=62 time=13.708 ms
 84 bytes from 10.0.102.10 icmp_seq=5 ttl=62 time=16.982 ms
 
-prod1-pc> show  arp
+prod1-pc> show arp
 
-50:00:00:d5:5d:c0  10.0.101.1 expires in 68 seconds 
+00:00:22:22:33:33  10.0.101.1 expires in 111 seconds 
 ```
 Со второго ПК так-же доступен интерфейс МСЭ:
 ```
@@ -93,7 +93,7 @@ prod2-pc> ping 10.0.103.10
 
 prod2-pc> show arp
 
-50:00:00:03:37:66  10.0.101.1 expires in 96 seconds 
+00:00:22:22:33:33  10.0.101.1 expires in 113 seconds 
 ```
 Диагностическая информация с коммутаторов:
 

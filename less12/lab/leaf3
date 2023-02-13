@@ -61,27 +61,11 @@ interface Loopback0
    ip address 10.0.2.3/32
    isis enable underlay
 !
-interface Loopback2
-   vrf PROD
-   ip address 10.0.100.1/32
-   ip ospf area 0.0.0.0
-!
-interface Loopback3
-   vrf DEV
-   ip address 10.0.200.1/32
-   ip ospf area 0.0.0.0
-!
 interface Management1
 !
 interface Vlan103
    vrf PROD
-   ip address 10.0.103.1/24
-   ip ospf area 0.0.0.0
-!
-interface Vlan203
-   vrf DEV
-   ip address 10.0.203.1/24
-   ip ospf area 0.0.0.0
+   ip address virtual 10.0.103.1/24
 !
 interface Vxlan1
    vxlan source-interface Loopback0
