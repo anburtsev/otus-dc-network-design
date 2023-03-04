@@ -1,0 +1,262 @@
+UNDERLAY
+----------
+
+spine1
+----
+!
+feature lldp
+feature isis
+!
+hostname spine1
+!
+no ip domain-lookup
+!
+key chain isis-key
+  key 1
+    key-string 0 otus
+!
+router isis underlay
+  net 49.0001.0100.0000.1001.00
+  is-type level-2
+  authentication-type md5 level-2
+  authentication key-chain isis-key level-2
+!
+interface Ethernet1/1
+  description -- leaf1  --
+  no switchport
+  ip address 10.0.0.0/31
+  isis network point-to-point
+  ip router isis underlay
+  no shutdown
+!
+interface Ethernet1/2
+  description -- leaf2  --
+  no switchport
+  ip address 10.0.0.2/31
+  isis network point-to-point
+  ip router isis underlay
+  no shutdown
+
+interface Ethernet1/3
+  description -- leaf3  --
+  no switchport
+  ip address 10.0.0.4/31
+  isis network point-to-point
+  ip router isis underlay
+  no shutdown
+
+interface loopback0
+  ip address 10.0.1.1/32
+  ip router isis underlay
+!
+end
+
+--->
+
+leaf1
+------
+!
+feature lldp
+feature isis
+!
+hostname leaf1
+!
+no ip domain-lookup
+!
+key chain isis-key
+  key 1
+    key-string 0 otus
+!
+router isis underlay
+  net 49.0001.0100.0000.2001.00
+  is-type level-2
+  authentication-type md5 level-2
+  authentication key-chain isis-key level-2
+!
+interface Ethernet1/1
+  description -- spine1  --
+  no switchport
+  ip address 10.0.0.1/31
+  isis network point-to-point
+  ip router isis underlay
+  no shutdown
+!
+interface loopback0
+  ip address 10.0.2.1/32
+  ip router isis underlay
+!
+end
+
+--->
+
+leaf2
+------
+!
+feature lldp
+feature isis
+!
+hostname leaf2
+!
+no ip domain-lookup
+!
+key chain isis-key
+  key 1
+    key-string 0 otus
+!
+router isis underlay
+  net 49.0001.0100.0000.2002.00
+  is-type level-2
+  authentication-type md5 level-2
+  authentication key-chain isis-key level-2
+!
+interface Ethernet1/1
+  description -- spine1  --
+  no switchport
+  ip address 10.0.0.3/31
+  isis network point-to-point
+  ip router isis underlay
+  no shutdown
+!
+interface loopback0
+  ip address 10.0.2.2/32
+  ip router isis underlay
+!
+end
+
+--->
+
+leaf3
+------
+!
+feature lldp
+feature isis
+!
+hostname leaf3
+!
+no ip domain-lookup
+!
+key chain isis-key
+  key 1
+    key-string 0 otus
+!
+router isis underlay
+  net 49.0001.0100.0000.2003.00
+  is-type level-2
+  authentication-type md5 level-2
+  authentication key-chain isis-key level-2
+!
+interface Ethernet1/1
+  description -- spine1  --
+  no switchport
+  ip address 10.0.0.5/31
+  isis network point-to-point
+  ip router isis underlay
+  no shutdown
+!
+interface loopback0
+  ip address 10.0.2.3/32
+  ip router isis underlay
+!
+end
+
+--->
+
+vPC
+----------
+
+leaf2
+----
+!
+feature vpc
+feature lacp
+!
+vrf context VPC-Peer-Keepalive
+!
+interface Ethernet1/7
+  no switchport
+  vrf member VPC-Peer-Keepalive
+  ip address 10.11.255.2/24
+  no shutdown
+!
+vpc domain 23
+  peer-keepalive destination 10.11.255.3 source 10.11.255.2 vrf VPC-Peer-Keepalive
+  Peer-gateway
+  ip arp synchronize
+!
+interface port-channel23
+  switchport mode trunk
+  spanning-tree port type network
+  vpc peer-link
+!
+interface Ethernet1/5
+  description ** Po23 member - vPC PEER-link **
+  switchport mode trunk
+  channel-group 23 mode active
+!
+interface Ethernet1/6
+  description ** Po23 member - vPC PEER-link **
+  switchport mode trunk
+  channel-group 23 mode active
+!
+--->
+
+leaf3
+----
+!
+feature vpc
+feature lacp
+!
+vrf context VPC-Peer-Keepalive
+!
+interface Ethernet1/7
+  no switchport
+  vrf member VPC-Peer-Keepalive
+  ip address 10.11.255.3/24
+  no shutdown
+!
+vpc domain 23
+  peer-keepalive destination 10.11.255.2 source 10.11.255.3 vrf VPC-Peer-Keepalive
+  Peer-gateway
+  ip arp synchronize
+!
+interface port-channel23
+  switchport mode trunk
+  spanning-tree port type network
+  vpc peer-link
+!
+interface Ethernet1/5
+  description ** Po23 member - vPC PEER-link **
+  switchport mode trunk
+  channel-group 23 mode active
+!
+interface Ethernet1/6
+  description ** Po23 member - vPC PEER-link **
+  switchport mode trunk
+  channel-group 23 mode active
+!
+--->
+
+
+OVERLAY
+----------
+leaf1
+-----
+!
+fabric forwarding anycast-gateway-mac 2020.0000.AABB
+!
+interface Vlan 101
+  vrf member PROD
+  ip address 10.0.101.1/24
+  fabric forwarding mode anycast-gateway
+!
+interface Vlan 102
+  vrf member PROD
+  ip address 10.0.102.1/24
+  fabric forwarding mode anycast-gateway
+!
+interface Vlan 201
+  vrf member DEV
+  ip address 10.0.201.1/24
+  fabric forwarding mode anycast-gateway
+!
+

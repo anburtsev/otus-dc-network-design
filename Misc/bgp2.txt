@@ -1,0 +1,37 @@
+spine -RR
+---
+peer-filter LEAF_AS_RANGE
+   10 match as-range 4259840011 result accept
+!
+router bgp 65000.11
+   router-id 10.0.1.2
+   bgp listen range 10.0.2.0/24 peer-group LEAF_OVERLAY peer-filter LEAF_AS_RANGE
+   neighbor LEAF_OVERLAY peer group
+   neighbor LEAF_OVERLAY update-source Loopback0
+   neighbor LEAF_OVERLAY route-reflector-client
+   neighbor LEAF_OVERLAY send-community
+   !
+   address-family evpn
+      neighbor LEAF_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor LEAF_OVERLAY activate
+      
+leaf -RR client
+--------------
+
+router bgp 65000.11
+   router-id 10.0.2.1
+   neighbor SPINE_OVERLAY peer group
+   neighbor SPINE_OVERLAY update-source Loopback0
+   neighbor SPINE_OVERLAY send-community
+   neighbor 10.0.1.1 peer group SPINE_OVERLAY
+   neighbor 10.0.1.1 remote-as 65000.11
+   neighbor 10.0.1.2 peer group SPINE_OVERLAY
+   neighbor 10.0.1.2 remote-as 65000.11
+   address-family evpn
+      neighbor SPINE_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor SPINE_OVERLAY activate
+

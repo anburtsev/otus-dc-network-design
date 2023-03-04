@@ -44,19 +44,19 @@ feature lldp
 no ip domain-lookup
 
 interface Ethernet1/1
-  description -- spine1  --
+  description -- leaf1  --
   no switchport
   ip address 10.0.73.6/30
   no shutdown
 
 interface Ethernet1/2
-  description -- spine2  --
+  description -- leaf2  --
   no switchport
   ip address 10.0.73.10/30
   no shutdown
 
 interface Ethernet1/3
-  description -- spine3  --
+  description -- leaf3  --
   no switchport
   ip address 10.0.73.14/30
   no shutdown

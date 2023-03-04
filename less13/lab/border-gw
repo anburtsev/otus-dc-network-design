@@ -1,0 +1,225 @@
+!
+! Last configuration change at 16:39:04 UTC Sat Mar 4 2023
+!
+version 16.9
+service timestamps debug datetime msec
+service timestamps log datetime msec
+platform qfp utilization monitor load 80
+platform punt-keepalive disable-kernel-core
+platform console serial
+!
+hostname border-gw
+!
+boot-start-marker
+boot-end-marker
+!
+!
+vrf definition DEV
+ rd 65011:203
+ !
+ address-family ipv4
+  route-target export 65011:203
+  route-target import 65011:203
+ exit-address-family
+!
+vrf definition PROD
+ rd 65011:103
+ !
+ address-family ipv4
+  route-target export 65011:103
+  route-target import 65011:103
+ exit-address-family
+!
+!
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+crypto pki trustpoint TP-self-signed-3717243685
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-3717243685
+ revocation-check none
+ rsakeypair TP-self-signed-3717243685
+!
+!
+crypto pki certificate chain TP-self-signed-3717243685
+ certificate self-signed 01
+  30820330 30820218 A0030201 02020101 300D0609 2A864886 F70D0101 05050030 
+  31312F30 2D060355 04031326 494F532D 53656C66 2D536967 6E65642D 43657274 
+  69666963 6174652D 33373137 32343336 3835301E 170D3233 30323230 32303236 
+  32325A17 0D333030 31303130 30303030 305A3031 312F302D 06035504 03132649 
+  4F532D53 656C662D 5369676E 65642D43 65727469 66696361 74652D33 37313732 
+  34333638 35308201 22300D06 092A8648 86F70D01 01010500 0382010F 00308201 
+  0A028201 0100D3A1 7C2A0F2D 70845590 1394C294 7860E07D 0B81D443 01AB9115 
+  47AED9CA DD862C88 B2088E0A 43596706 93663AB2 2BBA094E E23089C9 AA86D310 
+  1B47DF29 5DC04145 1EB1CEA5 84F9A7D3 D5A1A64B B77D8889 644FAED2 33B3F869 
+  945EFC23 5CC0B181 0763AD6F ED6D8147 119DA1F1 F48830DC 346153FE 88989A20 
+  017E0885 3F6E159F A4545078 B34F955C 6B3AD27F 8277D531 D49A889E 5E3117C5 
+  D4888C93 AE081A16 C28B6586 85F20278 65B25C7A 3A291300 CE99F3D2 15C22C2D 
+  3551FD0F D2ABFD57 60FAAE44 B49303B2 AAA9D9E4 C3B7C7DA 2808E387 CD324327 
+  24498AFB D077D7A8 108C2C23 73DEED5F 22FFA8CD 25D2A4A8 484DF6EE 15330BD3 
+  6ADF8E90 637D0203 010001A3 53305130 0F060355 1D130101 FF040530 030101FF 
+  301F0603 551D2304 18301680 14EBCC18 DECB468B 5261F5AE E52DFA47 C007A90D 
+  97301D06 03551D0E 04160414 EBCC18DE CB468B52 61F5AEE5 2DFA47C0 07A90D97 
+  300D0609 2A864886 F70D0101 05050003 82010100 57115104 DA4E36A9 ECA6D0ED 
+  C6CF2EA9 6DDA143C DEC89467 A99473B2 87900812 8DF83728 96F4BFD7 427B88E6 
+  431AF8A5 80A131A1 408BAB8B E43D1EC2 D8A44C24 F4B60DC1 59B92332 87C86245 
+  36FB9240 FB9CAEFE 11B074FB 66E840C8 A52FC1B1 CF31FE8E A164D294 31A71FB4 
+  341194C6 19A3F0FF BEBD5E70 C61E671F 334513E7 A13D78FF 6887E21B B47260C6 
+  AA6BA11B C37FCCA7 77D98D8F 6F19F0FD B10F0488 F54592E7 56159A97 D995FBE2 
+  BDF392E1 2422E0DE EF7E3279 069A15D1 D171257F B5F5B59C 6613FE47 5BF6E922 
+  800050EA 9CDDF259 B8197D96 FCB060C8 8E350264 9569515C EDDD79D7 6CDFD8C5 
+  DCD8B765 54281DF1 709CFB2B EACD2048 3C5C845D
+  	quit
+!
+!
+!
+!
+!
+!
+!
+!
+license udi pid CSR1000V sn 96LPZ58FU52
+no license smart enable
+diagnostic bootup level minimal
+!
+spanning-tree extend system-id
+!
+!
+!
+!
+redundancy
+!
+!
+!
+!
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface Port-channel1
+ no shutdown
+ no ip address
+ no negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface Port-channel1.103
+ no shutdown
+ encapsulation dot1Q 103
+ vrf forwarding PROD
+ ip address 10.0.103.10 255.255.255.0
+!
+interface Port-channel1.203
+ no shutdown
+ encapsulation dot1Q 203
+ vrf forwarding DEV
+ ip address 10.0.203.10 255.255.255.0
+!
+interface GigabitEthernet1
+ no shutdown
+ no ip address
+ negotiation auto
+ no mop enabled
+ no mop sysid
+ channel-group 1 mode active
+!
+interface GigabitEthernet2
+ no shutdown
+ no ip address
+ negotiation auto
+ no mop enabled
+ no mop sysid
+ channel-group 1 mode active
+!
+interface GigabitEthernet3
+ no shutdown
+ no ip address
+ shutdown
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface GigabitEthernet4
+ no shutdown
+ no ip address
+ shutdown
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+ip route 10.0.0.0 255.0.0.0 10.0.103.1
+ip route vrf DEV 10.0.200.0 255.255.252.0 10.0.203.1
+ip route vrf PROD 10.0.100.0 255.255.252.0 10.0.103.1
+!
+!
+!
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+line con 0
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+!
+!
+!
+!
+end
+

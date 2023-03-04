@@ -1,0 +1,4 @@
+show bgp evpn summary
+show vxlan vtep detail 
+show int vxlan 1
+show vxlan address-table

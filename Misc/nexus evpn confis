@@ -1,0 +1,716 @@
+Spine "1" Configuration:
+
+hostname SPINE1
+
+nv overlay evpn
+
+feature ospf
+
+feature bgp
+
+feature pim
+
+feature nv overlay
+
+ip pim anycast-rp 10.254.254.254 10.250.250.101
+
+ip pim rp-address 10.254.254.254 group-list 239.239.239.0/24
+
+interface Ethernet3/1
+
+  description Link to Leaf "V2"
+
+  mtu 9216
+
+  ip address 10.1.1.6/30
+
+  ip ospf network point-to-point
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+  no shutdown
+
+interface Ethernet3/2
+
+  description Link to Leaf "V1"
+
+  mtu 9216
+
+  ip address 10.1.1.2/30
+
+  ip ospf network point-to-point
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+  no shutdown
+
+
+interface loopback0
+
+  ip address 10.250.250.101/32
+
+  ip ospf network point-to-point # will change OSPF interface back to Loopback; required for VPC
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+interface loopback254
+
+  ip address 10.254.254.254/32
+
+  ip ospf network point-to-point
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+router ospf UNDERLAY
+
+  router-id 10.250.250.101
+
+  log-adjacency-changes detail
+
+router bgp 65500
+
+  router-id 10.250.250.101
+
+  address-family ipv4 unicast
+
+  neighbor 10.250.250.0/24 remote-as 65500
+
+    update-source loopback0
+
+    address-family ipv4 unicast # optional for "show ip bgp summary" support
+
+    address-family l2vpn evpn
+
+      send-community both
+
+      route-reflector-client
+
+
+
+Leaf "V1" Configuration:
+
+hostname LeafV1
+
+nv overlay evpn
+
+feature ospf
+
+feature bgp
+
+feature pim
+
+feature interface-vlan
+
+feature vn-segment-vlan-based
+
+feature nv overlay
+
+feature vpc
+
+fabric forwarding anycast-gateway-mac 2020.DEAD.BEEF
+
+ip pim rp-address 10.254.254.254 group-list 239.239.239.0/24
+
+vlan 1,99-101,2500,3000
+
+vlan 99
+
+  name L2onlyHostSegment
+
+  vn-segment 30099
+
+vlan 100
+
+  name L2L3HostSegment
+
+  vn-segment 30000
+
+vlan 101
+
+  name L2L3HostSegment
+
+  vn-segment 30001
+
+vlan 2500
+
+  name FabricBD
+
+  vn-segment 50000
+
+vlan 3000
+
+  name VPCL3Peering
+
+route-map FABRIC-RMAP-REDIST-SUBNET permit 10
+
+  match tag 21921
+
+vrf context TENANT1
+
+  vni 50000
+
+  rd auto
+
+  address-family ipv4 unicast
+
+    route-target both auto
+
+    route-target both auto evpn
+
+  address-family ipv6 unicast
+
+    route-target both auto
+
+    route-target both auto evpn
+
+vpc domain 1
+
+  peer-switch
+
+  peer-keepalive destination 10.2.8.1 source 10.2.8.2 vrf management
+
+  peer-gateway
+
+  ip arp synchronize
+
+interface Vlan100
+
+  no shutdown
+
+  vrf member TENANT1
+
+  ip address 192.168.100.1/24 tag 21921
+
+  fabric forwarding mode anycast-gateway
+
+interface Vlan101
+
+  no shutdown
+
+  vrf member TENANT1
+
+  ip address 192.168.101.1/24 tag 21921
+
+  fabric forwarding mode anycast-gateway
+
+interface Vlan2500
+
+  description FabricBD
+
+  no shutdown
+
+  mtu 9216
+
+  vrf member TENANT1
+
+  ip forward
+
+interface Vlan3000
+
+  description VPC Layer-3 Peering for VXLAN
+
+  no shutdown
+
+  ip address 10.3.1.1/30 # Requires to be individual IP per VPC member
+
+  ip ospf network point-to-point
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+
+nve infra-vlans 3000
+
+# required for Nexus 9300-EX/FX or Nexus 9200
+
+interface port-channel1
+
+  description VPC Peer-Link
+
+  switchport mode trunk
+
+  spanning-tree port type network
+
+  lacp suspend-individual
+
+  vpc peer-link
+
+hardware access-list tcam region vacl 0
+
+# example region to free up space for arp-ether region
+
+
+hardware access-list tcam region arp-ether 256 double-wide
+
+# required for ARP suppression, requires reboot
+
+# double-wide is required starting 7.0(3)I3(1)
+
+# not required for Nexus 9300-EX/FX or Nexus 9200
+
+interface nve1
+
+  mtu 9216
+
+  no shutdown
+
+  source-interface loopback1
+
+  host-reachability protocol bgp
+
+  member vni 30000
+
+    suppress-arp
+
+    mcast-group 239.239.239.100
+
+  member vni 30001
+
+    suppress-arp
+
+    mcast-group 239.239.239.101
+
+  member vni 30099
+
+    mcast-group 239.239.239.99
+
+  member vni 50000 associate-vrf
+
+interface Ethernet1/1
+
+  switchport mode trunk
+
+  spanning-tree port type edge trunk
+
+  spanning-tree bpduguard enable
+
+interface Ethernet1/47
+
+  description Link for VPC Peer-Link
+
+  switchport mode trunk
+
+  channel-group 1 mode active
+
+interface Ethernet1/48
+
+  description Link for VPC Peer-Link
+
+  switchport mode trunk
+
+  channel-group 1 mode active
+
+
+interface Ethernet2/1
+
+  description Link to Spine "1"
+
+  no switchport
+
+  mtu 9216
+
+  ip address 10.1.1.1/30
+
+  ip ospf network point-to-point
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+interface loopback0 # Loopback for Router ID, routing adjacency and peering
+
+  ip address 10.250.250.102/32
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+interface loopback1 # Loopback for VTEP only
+
+  ip address 10.254.254.102/32
+
+  ip address 10.254.254.1/32 secondary
+
+  ip ospf network point-to-point # will change OSPF interface back to Loopback; required for VPC
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+router ospf UNDERLAY
+
+  router-id 10.250.250.102
+
+  log-adjacency-changes detail
+
+router bgp 65500
+
+  router-id 10.250.250.102
+
+  address-family ipv4 unicast
+
+  neighbor 10.250.250.101 remote-as 65500
+
+    update-source loopback0
+
+    address-family ipv4 unicast # optional for "show ip bgp summary" support
+
+    address-family l2vpn evpn
+
+      send-community both
+
+  vrf TENANT1
+
+    address-family ipv4 unicast
+
+      advertise l2vpn evpn
+
+      redistribute direct route-map FABRIC-RMAP-REDIST-SUBNET
+
+evpn
+
+  vni 30000 l2
+
+    rd auto
+
+    route-target import auto
+
+    route-target export auto
+
+  vni 30001 l2
+
+    rd auto
+
+    route-target import auto
+
+    route-target export auto
+
+  vni 30099 l2
+
+    rd auto
+
+    route-target import auto
+
+    route-target export auto
+
+Leaf "V2" Configuration:
+
+hostname LeafV2
+
+nv overlay evpn
+
+feature ospf
+
+feature bgp
+
+feature pim
+
+feature interface-vlan
+
+feature vn-segment-vlan-based
+
+feature nv overlay
+
+feature vpc
+
+fabric forwarding anycast-gateway-mac 2020.DEAD.BEEF
+
+ip pim rp-address 10.254.254.254 group-list 239.239.239.0/24
+
+vlan 1,99-101,2500,3000
+
+vlan 99
+
+  name L2onlyHostSegment
+
+  vn-segment 30099
+
+vlan 100
+
+  name L2L3HostSegment
+
+  vn-segment 30000
+
+vlan 101
+
+  name L2L3HostSegment
+
+  vn-segment 30001
+
+vlan 2500
+
+  name FabricBD
+
+  vn-segment 50000
+
+vlan 3000
+
+  name VPCL3Peering
+
+route-map FABRIC-RMAP-REDIST-SUBNET permit 10
+
+  match tag 21921
+
+vrf context TENANT1
+
+  vni 50000
+
+  rd auto
+
+  address-family ipv4 unicast
+
+    route-target both auto
+
+    route-target both auto evpn
+
+  address-family ipv6 unicast
+
+    route-target both auto
+
+    route-target both auto evpn
+
+vpc domain 1
+
+  peer-switch
+
+  peer-keepalive destination 10.2.8.2 source 10.2.8.1 vrf management
+
+  peer-gateway
+
+  ip arp synchronize
+
+interface Vlan100
+
+  no shutdown
+
+  vrf member TENANT1
+
+  ip address 192.168.100.1/24 tag 21921
+
+  fabric forwarding mode anycast-gateway
+
+interface Vlan101
+
+  no shutdown
+
+  vrf member TENANT1
+
+  ip address 192.168.101.1/24 tag 21921
+
+  fabric forwarding mode anycast-gateway
+
+interface Vlan2500
+
+  description FabricBD
+
+  no shutdown
+
+  mtu 9216
+
+  vrf member TENANT1
+
+  ip forward
+
+interface Vlan3000
+
+  description VPC Layer-3 Peering for VXLAN
+
+  no shutdown
+
+  ip address 10.3.1.2/30 # Requires to be individual IP per VPC member
+
+  ip ospf network point-to-point
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+
+nve infra-vlans 3000
+
+# required for Nexus 9300-EX/FX or Nexus 9200
+
+interface port-channel1
+
+  description VPC Peer-Link
+
+  switchport mode trunk
+
+  spanning-tree port type network
+
+  lacp suspend-individual
+
+  vpc peer-link
+
+
+hardware access-list tcam region vacl 0
+
+# example region to free up space for arp-ether region
+
+
+hardware access-list tcam region arp-ether 256 double-wide
+
+# required for ARP suppression, requires reboot
+
+# double-wide is required starting 7.0(3)I3(1)
+
+# not required for Nexus 9300-EX/FX or Nexus 9200
+
+interface nve1
+
+  mtu 9216
+
+  no shutdown
+
+  source-interface loopback1
+
+  host-reachability protocol bgp
+
+  member vni 30000
+
+    suppress-arp
+
+    mcast-group 239.239.239.100
+
+  member vni 30001
+
+    suppress-arp
+
+    mcast-group 239.239.239.101
+
+  member vni 30099
+
+    mcast-group 239.239.239.99
+
+  member vni 50000 associate-vrf
+
+interface Ethernet1/1
+
+  switchport mode trunk
+
+  spanning-tree port type edge trunk
+
+  spanning-tree bpduguard enable
+
+interface Ethernet1/47
+
+  description Link for VPC Peer-Link
+
+  switchport mode trunk
+
+  channel-group 1 mode active
+
+interface Ethernet1/48
+
+  description Link for VPC Peer-Link
+
+  switchport mode trunk
+
+  channel-group 1 mode active
+
+
+interface Ethernet2/1
+
+  description Link to Spine "1"
+
+  no switchport
+
+  mtu 9216
+
+  ip address 10.1.1.5/30
+
+  ip ospf network point-to-point
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+  no shutdown
+
+interface loopback0 # Loopback for Router ID, routing adjacency and peering
+
+  ip address 10.250.250.103/32
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+interface loopback1 # Loopback for VTEP only
+
+  ip address 10.254.254.103/32
+
+  ip address 10.254.254.1/32 secondary
+
+  ip ospf network point-to-point # will change OSPF interface back to Loopback; required for VPC
+
+  ip router ospf UNDERLAY area 0.0.0.0
+
+  ip pim sparse-mode
+
+router ospf UNDERLAY
+
+  router-id 10.250.250.103
+
+  log-adjacency-changes detail
+
+router bgp 65500
+
+  router-id 10.250.250.103
+
+  address-family ipv4 unicast
+
+  neighbor 10.250.250.101 remote-as 65500
+
+    update-source loopback0
+
+    address-family ipv4 unicast # optional for "show ip bgp summary" support
+
+    address-family l2vpn evpn
+
+      send-community both
+
+  vrf TENANT1
+
+    address-family ipv4 unicast
+
+      advertise l2vpn evpn
+
+      redistribute direct route-map FABRIC-RMAP-REDIST-SUBNET
+
+      maximum-paths ibgp 2
+
+evpn
+
+  vni 30000 l2
+
+    rd auto
+
+    route-target import auto
+
+    route-target export auto
+
+  vni 30001 l2
+
+    rd auto
+
+    route-target import auto
+
+    route-target export auto
+
+  vni 30099 l2
+
+    rd auto
+
+    route-target import auto
+
+    route-target export auto
+
+
+

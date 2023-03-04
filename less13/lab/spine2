@@ -1,0 +1,83 @@
+! device: spine2 (vEOS-lab, EOS-4.26.4M)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model multi-agent
+!
+hostname spine2
+!
+spanning-tree mode mstp
+!
+interface Ethernet1
+   no switchport
+   ip address 10.0.0.8/31
+   isis enable underlay
+   isis network point-to-point
+!
+interface Ethernet2
+   no switchport
+   ip address 10.0.0.10/31
+   isis enable underlay
+   isis network point-to-point
+!
+interface Ethernet3
+   no switchport
+   ip address 10.0.0.12/31
+   isis enable underlay
+   isis network point-to-point
+!
+interface Ethernet4
+   no switchport
+   ip address 10.0.0.14/31
+   isis enable underlay
+   isis network point-to-point
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.0.1.2/32
+   isis enable underlay
+!
+interface Management1
+!
+ip routing
+!
+peer-filter LEAF_AS_RANGE
+   10 match as-range 4259840011 result accept
+!
+router bgp 4259840011
+   router-id 10.0.1.2
+   timers bgp 2 6
+   maximum-paths 16
+   bgp listen range 10.0.2.0/24 peer-group LEAF_OVERLAY peer-filter LEAF_AS_RANGE
+   neighbor LEAF_OVERLAY peer group
+   neighbor LEAF_OVERLAY update-source Loopback0
+   neighbor LEAF_OVERLAY route-reflector-client
+   neighbor LEAF_OVERLAY password 7 69i621b8dEg=
+   neighbor LEAF_OVERLAY send-community
+   !
+   address-family evpn
+      neighbor LEAF_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor LEAF_OVERLAY activate
+!
+router isis underlay
+   net 49.0001.0100.0000.1002.00
+   router-id ipv4 10.0.1.2
+   authentication mode md5
+   authentication key 7 wHFCFUpFn04=
+   !
+   address-family ipv4 unicast
+!
+end
