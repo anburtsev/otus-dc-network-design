@@ -1,0 +1,248 @@
+!
+! Last configuration change at 20:03:44 UTC Thu Mar 9 2023
+!
+version 16.9
+service timestamps debug datetime msec
+service timestamps log datetime msec
+platform qfp utilization monitor load 80
+platform punt-keepalive disable-kernel-core
+platform console serial
+!
+hostname border-gw
+!
+boot-start-marker
+boot-end-marker
+!
+!
+vrf definition DEV
+ rd 65011:203
+ !
+ address-family ipv4
+  route-target export 65011:203
+  route-target export 65011:2
+  route-target import 65011:203
+  route-target import 65011:1
+  route-target import 65011:2
+ exit-address-family
+!
+vrf definition INET
+ rd 65011:1
+ !
+ address-family ipv4
+  route-target export 65011:1
+  route-target import 65011:1
+  route-target import 65011:2
+ exit-address-family
+!
+vrf definition PROD
+ rd 65011:103
+ !
+ address-family ipv4
+  route-target export 65011:103
+  route-target export 65011:2
+  route-target import 65011:103
+  route-target import 65011:1
+  route-target import 65011:2
+ exit-address-family
+!
+!
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+crypto pki trustpoint TP-self-signed-3717243685
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-3717243685
+ revocation-check none
+ rsakeypair TP-self-signed-3717243685
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+license udi pid CSR1000V sn 95IFX3GFFIU
+no license smart enable
+diagnostic bootup level minimal
+!
+spanning-tree extend system-id
+!
+!
+!
+!
+redundancy
+!
+!
+!
+!
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface Loopback0
+ no shutdown
+ ip address 10.255.255.10 255.255.255.255
+!
+interface GigabitEthernet1
+ no shutdown
+ no ip address
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface GigabitEthernet1.103
+ no shutdown
+ encapsulation dot1Q 103
+ vrf forwarding PROD
+ ip address 10.0.103.10 255.255.255.0
+!
+interface GigabitEthernet1.203
+ no shutdown
+ encapsulation dot1Q 203
+ vrf forwarding DEV
+ ip address 10.0.203.10 255.255.255.0
+!
+interface GigabitEthernet2
+ no shutdown
+ no ip address
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface GigabitEthernet2.104
+ no shutdown
+ encapsulation dot1Q 104
+ vrf forwarding PROD
+ ip address 10.0.104.10 255.255.255.0
+!
+interface GigabitEthernet2.204
+ no shutdown
+ encapsulation dot1Q 204
+ vrf forwarding DEV
+ ip address 10.0.204.10 255.255.255.0
+!
+interface GigabitEthernet3
+ no shutdown
+ vrf forwarding INET
+ ip address 192.168.1.1 255.255.255.0
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+interface GigabitEthernet4
+ no shutdown
+ no ip address
+ shutdown
+ negotiation auto
+ no mop enabled
+ no mop sysid
+!
+router bgp 65011
+ bgp router-id 10.255.255.10
+ bgp log-neighbor-changes
+ maximum-paths 4
+ !
+ address-family ipv4 vrf DEV
+  aggregate-address 10.0.100.0 255.255.252.0 summary-only
+  redistribute connected
+  neighbor 10.0.203.1 remote-as 4259840011
+  neighbor 10.0.203.1 description leaf3
+  neighbor 10.0.203.1 activate
+  neighbor 10.0.204.1 remote-as 4259840011
+  neighbor 10.0.204.1 description leaf4
+  neighbor 10.0.204.1 activate
+ exit-address-family
+ !
+ address-family ipv4 vrf INET
+  redistribute static
+  default-information originate
+ exit-address-family
+ !
+ address-family ipv4 vrf PROD
+  aggregate-address 10.0.200.0 255.255.252.0 summary-only
+  redistribute connected
+  neighbor 10.0.103.1 remote-as 4259840011
+  neighbor 10.0.103.1 description leaf3
+  neighbor 10.0.103.1 activate
+  neighbor 10.0.104.1 remote-as 4259840011
+  neighbor 10.0.104.1 description leaf4
+  neighbor 10.0.104.1 activate
+ exit-address-family
+!
+ip forward-protocol nd
+ip http server
+ip http authentication local
+ip http secure-server
+ip route vrf INET 0.0.0.0 0.0.0.0 192.168.1.10
+!
+!
+!
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+line con 0
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+!
+!
+!
+!
+end
+

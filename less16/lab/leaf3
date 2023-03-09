@@ -1,0 +1,139 @@
+! device: leaf3 (vEOS-lab, EOS-4.26.4M)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model multi-agent
+!
+hostname leaf3
+!
+spanning-tree mode rstp
+!
+vlan 103
+   name Prod_net3
+!
+vlan 203
+   name Dev_net3
+!
+vrf instance DEV
+   !! Development network
+!
+vrf instance PROD
+   !! Production Network
+!
+interface Ethernet1
+   no switchport
+   ip address 10.0.0.5/31
+   isis enable underlay
+   isis network point-to-point
+!
+interface Ethernet2
+   no switchport
+   ip address 10.0.0.13/31
+   isis enable underlay
+   isis network point-to-point
+!
+interface Ethernet3
+   description border-gw link
+   switchport trunk allowed vlan 103,203
+   switchport mode trunk
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.0.2.3/32
+   isis enable underlay
+!
+interface Loopback1
+   ip address 10.0.10.3/32
+   isis enable underlay
+!
+interface Management1
+!
+interface Vlan103
+   vrf PROD
+   ip address 10.0.103.1/24
+!
+interface Vlan203
+   vrf DEV
+   ip address 10.0.203.1/24
+!
+interface Vxlan1
+   vxlan source-interface Loopback1
+   vxlan udp-port 4789
+   vxlan vlan 103 vni 10103
+   vxlan vlan 203 vni 10203
+   vxlan vrf DEV vni 10200
+   vxlan vrf PROD vni 10100
+   vxlan learn-restrict any
+!
+ip virtual-router mac-address 00:00:22:22:33:33
+!
+ip routing
+ip routing vrf DEV
+ip routing vrf PROD
+!
+router bgp 4259840011
+   router-id 10.0.2.3
+   timers bgp 2 6
+   maximum-paths 16
+   neighbor SPINE_OVERLAY peer group
+   neighbor SPINE_OVERLAY update-source Loopback0
+   neighbor SPINE_OVERLAY password 7 z0vwlMLDMEs=
+   neighbor SPINE_OVERLAY send-community
+   neighbor 10.0.1.1 peer group SPINE_OVERLAY
+   neighbor 10.0.1.1 remote-as 4259840011
+   neighbor 10.0.1.2 peer group SPINE_OVERLAY
+   neighbor 10.0.1.2 remote-as 4259840011
+   !
+   vlan 103
+      rd 10.0.2.3:10103
+      route-target both 11:10103
+      redistribute learned
+   !
+   vlan 203
+      rd 10.0.2.3:10203
+      route-target both 11:10203
+      redistribute learned
+   !
+   address-family evpn
+      neighbor SPINE_OVERLAY activate
+   !
+   address-family ipv4
+      no neighbor SPINE_OVERLAY activate
+   !
+   vrf DEV
+      rd 10.0.2.3:200
+      route-target import evpn 11:10200
+      route-target export evpn 11:10200
+      neighbor 10.0.203.10 remote-as 65011
+      redistribute connected
+   !
+   vrf PROD
+      rd 10.0.2.3:100
+      route-target import evpn 11:10100
+      route-target export evpn 11:10100
+      neighbor 10.0.103.10 remote-as 65011
+      redistribute connected
+!
+router isis underlay
+   net 49.0001.0100.0000.2003.00
+   is-type level-2
+   authentication mode md5
+   authentication key 7 wHFCFUpFn04=
+   !
+   address-family ipv4 unicast
+!
+end
+

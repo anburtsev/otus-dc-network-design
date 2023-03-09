@@ -147,6 +147,9 @@ prod3-pc> ping 10.0.101.10
 84 bytes from 10.0.101.10 icmp_seq=4 ttl=62 time=21.296 ms
 84 bytes from 10.0.101.10 icmp_seq=5 ttl=62 time=22.258 ms
 
+16
+VxLAN. Оптимизация таблиц маршрутизации
+
 prod3-pc> ping 10.0.101.11
 
 84 bytes from 10.0.101.11 icmp_seq=1 ttl=63 time=5.949 ms
