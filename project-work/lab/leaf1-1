@@ -1,0 +1,55 @@
+! device: leaf1-1 (vEOS-lab, EOS-4.26.4M)
+!
+! boot system flash:/vEOS-lab.swi
+!
+no aaa root
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model multi-agent
+!
+hostname leaf1-1
+!
+spanning-tree mode rstp
+!
+interface Ethernet1
+   no switchport
+   ip address 10.11.0.1/31
+   isis enable underlay
+   isis network point-to-point
+!
+interface Ethernet2
+   no switchport
+   ip address 10.11.3.1/30
+   isis enable underlay
+   isis passive
+!
+interface Ethernet3
+!
+interface Ethernet4
+!
+interface Ethernet5
+!
+interface Ethernet6
+!
+interface Ethernet7
+!
+interface Ethernet8
+!
+interface Loopback0
+   ip address 10.11.2.1/32
+   isis enable underlay
+!
+interface Management1
+!
+ip routing
+!
+router isis underlay
+   net 49.0001.0100.1100.2001.00
+   is-type level-2
+   authentication mode md5
+   authentication key 7 wHFCFUpFn04=
+   !
+   address-family ipv4 unicast
+!
+end

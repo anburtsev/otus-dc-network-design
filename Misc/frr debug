@@ -1,0 +1,6 @@
+output of show bgp summary
+output of show bgp nexthop
+output, from your shell, of ip addr show enp0s8 from both machine1 and machine2
+output, from your shell, of ip route from both machine1 and machine2
+output, from your shell, of ping 10.0.0.1 from machine2
+turn on debugs for BGP with the debug bgp neighbor-events command under the config context, configure logging to a file with log file /tmp/frr.log, restart FRR and post the log file here

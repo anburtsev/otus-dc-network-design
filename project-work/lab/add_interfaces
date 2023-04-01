@@ -1,0 +1,23 @@
+#!/bin/sh
+
+ifaceforvm="ens4"
+ifacefortep="ens3"
+ip="10.11.3.2"
+prefix="/30"
+gw="10.11.3.1"
+
+ip address add ${ip}${prefix} dev ${ifacefortep}
+ip link set up dev ${ifacefortep}
+ip route add default via ${gw}
+
+
+for vni in 10101 10102; do
+  ip link add vxlan${vni} type vxlan id ${vni} dstport 4789 local ${ip} nolearnig
+  brctl addbr br${vni}
+  brctl addif br${vni} vxlan${vni}
+  brctl stp br${vni} off
+  ip link set up dev br${vni}
+  ip link set up dev vxlan${vni}
+done
+
+# brctl addif br${vni} ${ifaceforvm}

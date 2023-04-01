@@ -1,4 +1,12 @@
+ARISTA CLI
+```
 show bgp evpn summary
 show vxlan vtep detail 
 show int vxlan 1
 show vxlan address-table
+```
+FRR CLI
+```
+show bgp l2vpn evpn summary
+show evpn vni detail
+```
