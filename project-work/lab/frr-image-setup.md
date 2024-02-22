@@ -13,17 +13,31 @@
   
   `apt install bridge-utils`
   
-5. Добавить параметр, разрешающий маршрутизацию пакетов
-в файле /etc/sysctl.conf паскомментировать строку `net.ipv4.ip_forward=1`
+5. Добавить параметры, разрешающие маршрутизацию пакетов. Скопировать файл 99frr_defaults.conf в каталог /etc/sysctl.d/ и выполнить команду:
+   
+   `sysctl -p /etc/sysctl.d/99frr_defaults.conf`
 
 6. Установить FRR
   
-  `apt instal frr`
+  `apt instal frr frr-doc`
   
-7. В конфигурации FRR включить протокол BGP
+7.  При необходимости, в конфигурации FRR включить необходимые протоколы (BGP, OSPF)
   
   `sudo vi /etc/frr/daemons`
   ```
   [...]
   bgpd=yes
-```
+  ospfd=yes
+  ```
+
+8. Включить автостарт сервиса frr и перезагрузить сервис
+   `systemctl enable frr.service`
+   `systemctl restart frr.service`
+
+9. Настраиваем права пользователя для управления FRR (login <frradmin> was created during OS setup)
+
+   `usermod -a -G frr frradmin`
+   `usermod -a -G frrvty frradmin`
+   `usermod -s /usr/bin/vtysh frradmin`
+
+10. Копируем на сервер и запускаем файл очистки debian-clear.sh
